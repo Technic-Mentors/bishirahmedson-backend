@@ -33,7 +33,7 @@ async function attachDetails(product) {
 
 export async function listPublicProducts({ categorySlug, search, minPrice, maxPrice, sort, page, pageSize }) {
   let categoryId;
-  if (categorySlug) {
+  if (categorySlug && categorySlug.toLowerCase() !== 'all') {
     const category = await findCategoryBySlug(categorySlug);
     if (!category) return { rows: [], meta: buildPaginationMeta({ page, pageSize, total: 0 }) };
     categoryId = category.id;
