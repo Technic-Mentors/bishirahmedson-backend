@@ -12,6 +12,7 @@ import { bannersRouter } from './banners.routes.js';
 import { settingsRouter } from './settings.routes.js';
 import { contactRouter } from './contact.routes.js';
 import { notificationsRouter } from './notifications.routes.js';
+import { trackOrderRouter } from './trackOrder.routes.js';
 
 export const shopRouter = Router();
 
@@ -20,6 +21,7 @@ shopRouter.use('/', catalogRouter);
 shopRouter.use('/cart', cartRouter);
 shopRouter.use('/wishlist', wishlistRouter);
 shopRouter.use('/notify-me', notifyMeRouter);
+shopRouter.use('/track-order', trackOrderRouter);
 shopRouter.use('/orders', ordersRouter);
 shopRouter.use('/addresses', addressesRouter);
 shopRouter.use('/coupons', couponsRouter);

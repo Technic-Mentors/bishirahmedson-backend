@@ -22,10 +22,18 @@ export const checkoutSchema = z.object({
       addressId: z.coerce.number().int().positive().optional(),
       shipping: inlineShipping.optional(),
       couponCode: z.string().trim().min(1).optional(),
+      paymentMethod: z.enum(['cod']).optional().default('cod'),
     })
     .refine((data) => data.addressId || data.shipping, {
       message: 'Provide either an addressId or shipping details.',
     }),
+});
+
+export const trackOrderSchema = z.object({
+  body: z.object({
+    orderNumber: z.string().trim().min(1).max(30),
+    phone: z.string().trim().min(8).max(20),
+  }),
 });
 
 export const orderIdParamSchema = z.object({

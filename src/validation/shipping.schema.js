@@ -7,6 +7,13 @@ export const shippingSettingsSchema = z.object({
   }),
 });
 
+export const shippingQuoteQuerySchema = z.object({
+  query: z.object({
+    city: z.string().trim().min(2).max(100),
+    subtotal: z.coerce.number().nonnegative(),
+  }),
+});
+
 export const shippingZoneBodySchema = z.object({
   body: z.object({
     city: z.string().trim().min(2).max(100),

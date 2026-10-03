@@ -3,11 +3,12 @@ import { pool } from '../../config/db.js';
 export async function insertOrderShell(connection, data) {
   const [result] = await connection.query(
     `INSERT INTO orders
-       (order_number, customer_id, status, subtotal, discount_amount, shipping_charge, total, coupon_id,
+       (order_number, customer_id, status, payment_method, subtotal, discount_amount, shipping_charge, total, coupon_id,
         shipping_full_name, shipping_phone, shipping_address_line1, shipping_address_line2, shipping_city)
-     VALUES ('PENDING', ?, 'placed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES ('PENDING', ?, 'placed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       data.customerId,
+      data.paymentMethod || 'cod',
       data.subtotal,
       data.discountAmount,
       data.shippingCharge,
@@ -37,6 +38,14 @@ export async function findOrderByIdForCustomer(id, customerId) {
     id,
     customerId,
   ]);
+  return rows[0] || null;
+}
+
+export async function findOrderByNumberAndPhone(orderNumber, phone) {
+  const [rows] = await pool.query(
+    'SELECT * FROM orders WHERE order_number = ? AND shipping_phone = ? LIMIT 1',
+    [orderNumber, phone],
+  );
   return rows[0] || null;
 }
 

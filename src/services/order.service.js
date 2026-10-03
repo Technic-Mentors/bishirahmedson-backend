@@ -35,10 +35,14 @@ async function buildOrderDetail(order) {
   return { ...order, items, history };
 }
 
-export async function placeOrder(customerId, { addressId, shipping, couponCode }) {
+export async function placeOrder(customerId, { addressId, shipping, couponCode, paymentMethod = 'cod' }) {
   const customer = await findCustomerById(customerId);
   const cartItems = await cartDb.listCartItems(customerId);
   if (cartItems.length === 0) throw new AppError('Your cart is empty.', 400);
+
+  if (paymentMethod !== 'cod') {
+    throw new AppError('Unsupported payment method.', 400);
+  }
 
   const inactiveItem = cartItems.find((item) => !item.is_active);
   if (inactiveItem) {
@@ -103,6 +107,7 @@ export async function placeOrder(customerId, { addressId, shipping, couponCode }
       shippingAddressLine1: shippingDetails.addressLine1,
       shippingAddressLine2: shippingDetails.addressLine2,
       shippingCity: shippingDetails.city,
+      paymentMethod,
     });
     await ordersDb.setOrderNumber(connection, newOrderId, orderNumberFromId(newOrderId));
 
@@ -146,22 +151,41 @@ export async function placeOrder(customerId, { addressId, shipping, couponCode }
 
   const order = await ordersDb.findOrderById(orderId);
 
-  await Promise.all([
-    sendOrderPlacedEmail(customer.email, order),
-    sendAdminNewOrderAlert(order),
-    notificationsDb.createNotification({
-      type: 'new_order',
-      title: 'New order received',
-      message: `Order ${order.order_number} — Rs. ${order.total}`,
-      link: `/admin/orders/${order.id}`,
-    }),
-  ]);
+// Fetch items for the email (customer, order, items, coupon)
+const orderItems = await orderItemsDb.listItemsForOrder(order.id);
+
+await Promise.all([
+  sendOrderPlacedEmail({
+    customer,
+    order,
+    items: orderItems,
+    couponCode: coupon?.code || null,
+  }),
+  sendAdminNewOrderAlert({
+    customer,
+    order,
+    items: orderItems,
+    couponCode: coupon?.code || null,
+  }),
+  notificationsDb.createNotification({
+    type: 'new_order',
+    title: 'New order received',
+    message: `Order ${order.order_number} — Rs. ${order.total}`,
+    link: `/admin/orders/${order.id}`,
+  }),
+]);
 
   return buildOrderDetail(order);
 }
 
 export async function getOrderForCustomer(orderId, customerId) {
   const order = await ordersDb.findOrderByIdForCustomer(orderId, customerId);
+  if (!order) throw new AppError('Order not found.', 404);
+  return buildOrderDetail(order);
+}
+
+export async function trackOrderByNumber(orderNumber, phone) {
+  const order = await ordersDb.findOrderByNumberAndPhone(orderNumber, phone);
   if (!order) throw new AppError('Order not found.', 404);
   return buildOrderDetail(order);
 }
@@ -196,7 +220,7 @@ export async function cancelOrderByCustomer(orderId, customerId, reason) {
 
   const updated = await ordersDb.findOrderById(orderId);
   await Promise.all([
-    sendOrderStatusEmail(customer.email, updated),
+    sendOrderStatusEmail(customer, updated),
     notificationsDb.createNotification({
       type: 'order_cancelled',
       title: `Order ${updated.order_number} cancelled`,
@@ -265,7 +289,7 @@ export async function updateOrderStatusAdmin(orderId, newStatus, note, adminId) 
       : `Your order status is now "${newStatus}".`;
 
   await Promise.all([
-    sendOrderStatusEmail(customer.email, updated),
+    sendOrderStatusEmail(customer, updated),
     notificationsDb.createNotification({
       type: newStatus === 'cancelled' ? 'order_cancelled' : 'order_status',
       title: `Order ${updated.order_number} update`,

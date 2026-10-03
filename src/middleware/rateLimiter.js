@@ -15,3 +15,11 @@ export const orderRateLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, error: 'Too many orders placed. Please try again later.' },
 });
+
+export const trackOrderRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many tracking requests. Please try again later.' },
+});

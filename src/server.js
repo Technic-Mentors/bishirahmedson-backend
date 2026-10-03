@@ -2,5 +2,5 @@ import { app } from './app.js';
 import { env } from './config/env.js';
 
 app.listen(env.port, () => {
-  console.log(`Libas-e-Haram API listening on http://localhost:${env.port}`);
+  console.log(`bashirahmedsons API listening on http://localhost:${env.port}`);
 });
