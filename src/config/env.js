@@ -43,6 +43,14 @@ export const env = {
     adminPath: process.env.ADMIN_APP_PATH || '/admin',
   },
 
+  // Extra browser origins allowed through CORS, comma-separated. The customer
+  // app origin is always allowed on top of these; this is for aliases such as
+  // a www host or a preview deployment.
+  corsOrigins: (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map((value) => value.trim().replace(/\/$/, ''))
+    .filter(Boolean),
+
   upload: {
     maxFileSizeMb: Number(process.env.UPLOAD_MAX_FILE_SIZE_MB || 5),
   },

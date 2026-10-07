@@ -13,11 +13,31 @@ import { adminRouter } from './routes/admin/index.js';
 export const app = express();
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+// Browser-facing origins — the admin app lives under a path on the customer app
+// (see env.urls.adminPath), so it shares the customer origin. localhost:5173 is
+// allowed outside production so the frontend can run locally against this backend.
+const allowedOrigins = new Set(
+  [
+    env.urls.customerApp,
+    env.urls.customerApp.replace('://', '://www.'),
+    ...env.corsOrigins,
+    ...(env.isProduction ? [] : ['http://localhost:5173']),
+  ].map((origin) => origin.replace(/\/$/, '')),
+);
+
 app.use(
   cors({
-    // Browser-facing origins — the admin app lives under a path on the customer app (see env.urls.adminPath).
-    // localhost:5173 is allowed so the frontend can be run locally against this backend during development.
-    origin: [env.urls.customerApp, 'http://localhost:5173'],
+    origin(origin, callback) {
+      // No Origin header means a same-origin or non-browser caller (curl, health
+      // checks, server-to-server) — there is nothing to authorise.
+      if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+      // Reject by withholding the header rather than throwing, so the browser
+      // reports a clean CORS failure instead of a 500.
+      console.warn(`[cors] blocked origin: ${origin}`);
+      return callback(null, false);
+    },
     credentials: true,
   }),
 );
