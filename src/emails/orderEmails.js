@@ -8,8 +8,8 @@ const BRAND = {
   gold: '#ca8a04',
   text: '#1c1917',
   muted: '#78716c',
-  phone: '+92 320 2644545',
-  phoneRaw: '+923202644545',
+  phone: '+92 3076441350',
+  phoneRaw: '+923076441350',
   branches: [
     'Branch 1: Said Nagri Bazar, Near Lahori Gate, Gujranwala',
     'Branch 2: DC Colony, Neelum Block Commercial Market Plaza Plot No. 15, Gujranwala',

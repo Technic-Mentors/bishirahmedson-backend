@@ -9,7 +9,7 @@ const BRAND = {
   border: '#e7e5e4',
   bg: '#faf8f4',
   address: 'Gujranwala, Punjab, Pakistan',
-  phone: '+92 320 2644545',
+  phone: '+92 3076441350',
 };
 
 function layout({ heading, bodyHtml, ctaText, ctaLink, footnote }) {
